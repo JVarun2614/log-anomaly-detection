@@ -1,0 +1,66 @@
+Log Anomaly Detection
+
+1)	Log Collection
+		a) HDFS Data Format
+			LineID : 1 
+			Date: 81109
+			Time: 203518
+			PID (Process ID): 143			
+			Level: INFO
+			Component: dfs.DataNode$DataXceiver
+			Content: Receiving block blk_-1608999687919862906 src: /10.250.19.102:54106 dest: /10.250.19.102:50010
+			EventID: E5
+			EventTemplate: Receiving block <*> src: /<*> dest: /<*>
+
+
+2) 	Log Parsing
+		a) Indentify the static part of a log line - log event or log template or logkey
+		b) Indentify the dynamic part of a log line 
+			1)	Block ID
+			2) 	IP Address
+			3)	Block SIZE
+			4) 	Message ID
+		
+		c) Replace the dynamic part with some unique staring like <*> is Log Parsing
+
+
+3) 	Log Partition
+		a) Fixed Partitioning - Divide the chronological(sort by time)logs by fixed time internal
+		
+		b) Sliding Partitioning -  Sliding partitioning has two parameters - partition size and stride. 
+			The stride indicates the forwarding distance of the time window along the time axis to generate log partitions (SLIDING WINDOW)
+			
+		c) Indentifier Based Partitioning - it sorts the logs in chronological order and divides them into different sequences. 
+			In each sequence, all logs share a unique and common identifier, indicating they originate from the same task execution.
+			For instance, HDFS logs employ block id to record the operations associated with a specific block, e.g., allocation, replication, and deletion. 
+			Particularly, log sequences generated in this manner often have varying lengths. 
+			For example, sequences with a short length could be due to early termination caused by abnormal execution.
+
+4) 	Feature Extraction
+		a) Convert the log words into vector using word2vec algorithms 
+		
+
+5)	Anomaly Detection
+		a) LSTM Model
+		b) CNN Model
+		
+		
+Design 
+
+1)	Datasets from LogHub - > HDFS and BGL
+2)  HDFS Dataset
+	a) Logs: 1,11,75,629
+	b) Anomalies: 16,838 
+						by 200 and more Amazon EC2 nodes for last 38.7 hours 
+	
+	c) Each log have unique block ID
+	d) Indentifier Based Partitioning
+3) 	BGL Dataset
+	a) Logs: 47,47,963
+	b) Anomalies: 3,48,460 
+						by BlueGene/L supercomputer at Lawrence Livermore National Labs for last 38.7 hours 
+	
+	c) Each log have no unique block ID or indentifier - use TimeStamp instead
+	d) Sliding Partitioning(10, 1), (50,1) or Fixed Partitioning( 6 hours)
+4) 	Divide Dataset into 80% for training and 20% for testing
+5)	Use LSTM and CNN Model
